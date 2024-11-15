@@ -1,0 +1,97 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.36.4/ace.min.js" integrity="sha512-9xNuS6O4ZXZdCVDekkW4ApP8MfH2SCyK7Wsd4g0l3KDmbNld2vsozYGY6kQup0VKB0iT89cLj/DiRSV7WjfUaw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js" integrity="sha512-CSBhVREyzHAjAFfBlIBakjoRUKp5h7VSweP0InR/pAJyptH7peuhCsqAI/snV+TwZmXZqoUklpXp6R6wMnYf5Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="matrix.js"></script>
+  <title>GitHub Actions Matrix Tester</title>
+</head>
+<body>
+  <div class="content">
+    <div class="header">
+      <h1>GitHub Actions Matrix Tester</h1>
+    </div>
+    <div class="main">
+      <div class="left">
+        <h3>YAML:</h3>
+        <pre id="editor"></pre>
+      </div>
+      <div class="right">
+        <h3>Output:</h3>
+        <div id="output">
+          <table id="table"></table>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <a href="http://https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow">GitHub Actions Matrix docs</a>
+    </div>
+  </div>
+  
+  <script>
+    const table = document.getElementById('table');
+    const editor = ace.edit("editor");
+    
+    editor.setTheme("ace/theme/one_dark");
+    editor.setFontSize(14);
+    editor.setDisplayIndentGuides(true);
+    editor.session.setMode("ace/mode/yaml");
+    editor.session.setTabSize(2);
+    
+    var timer;
+
+    var saved;
+    if (localStorage.getItem("editorValue"))
+      saved = localStorage.getItem("editorValue");
+    else {
+      saved = "fruit: [apple, pear]\nanimal: [cat, dog]\ninclude:\n  - color: green\n  - color: pink\n    animal: cat\n  - fruit: apple\n    shape: circle\n  - fruit: banana\n  - fruit: banana\n    animal: cat\nexclude:\n  - fruit: apple\n    animal: cat";
+    }
+    editor.setValue(saved, -1);
+
+    function parse() {
+      let text = editor.getValue();
+      localStorage.setItem("editorValue", text);
+      try {
+        const data = jsyaml.load(text);
+        let combinations = generateCombinations(data);
+        createTable(combinations);
+      } catch {
+        table.replaceChildren();
+      }
+    }
+
+    function createTable(data) {
+      const keys = [...new Set(data.flatMap(Object.keys))];
+      const thead = document.createElement('thead');
+      const tbody = document.createElement('tbody');
+      const headerRow = document.createElement('tr');
+      
+      keys.forEach(key => {
+        const th = document.createElement('th');
+        th.textContent = key;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+
+      data.forEach(obj => {
+        const row = document.createElement('tr');
+        keys.forEach(key => {
+          const cell = document.createElement('td');
+          cell.textContent = obj[key] || '';
+          row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+      });
+      table.replaceChildren(thead, tbody);
+    }
+
+    editor.session.on('change', (e) => {
+      clearTimeout(timer);
+      timer = setTimeout(parse, 500);
+    });
+
+    parse();
+  </script>
+</body>
+</html>
