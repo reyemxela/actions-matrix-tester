@@ -7,6 +7,7 @@
   --background:#282c34;
   --border:    #5c6370;
   --text:      #abb2bf;
+  --bright:    #e8e8e8;
 }
 
 html, body {
@@ -23,13 +24,22 @@ body {
 
 a {
   text-decoration: none;
-  color: var(--text);
+  color: var(--bright);
 }
-a:link    { color: var(--text); }
-a:visited { color: var(--text); }
+a:link    { color: var(--bright); }
+a:visited { color: var(--bright); }
 a:hover   { color: var(--border); }
 
+h2 {
+  margin: .3rem 0;
+}
+
+p {
+  margin: .3rem 0;
+}
+
 .content {
+  min-width: 800px;
   max-width: 1400px;
   margin: 0 auto;
   height: 100%;
@@ -46,6 +56,7 @@ a:hover   { color: var(--border); }
 }
 
 .footer {
+  display: flex;
   padding-top: 1rem;
 }
 
